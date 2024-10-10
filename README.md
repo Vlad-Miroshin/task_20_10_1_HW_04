@@ -19,6 +19,7 @@
 
 - [Применение метода массива 'reduce' вместо цикла](./partials/kiss/sample_1.md)
 - [Применение метода массива 'map' вместо цикла](./partials/kiss/sample_2.md)
+- [Применение специализированного метода объекта](./partials/kiss/sample_3.md)
 
 ### YAGNI
 
