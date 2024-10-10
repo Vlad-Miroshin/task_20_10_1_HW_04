@@ -1,57 +1,98 @@
 ## Пример 1
 
-Есть прототип с общими свойствами и методом toString(), возвращающим текстовое описание объекта.
-Есть его потомки, со своими уникальными свойствами и реализацией методов toString().
+Есть базовый класс электроприборов Devise предоставляющий потомкам свойство power (номинальная мощность), 
+метод isOn() (состояние вкл./выкл.) и метод getInputPower(), возвращающий значение потребляемой мощности
+в зависимости от состояния прибора.
+
+Есть его потомок класс Lamp (лампочка), со своим уникальным свойством dimmer, 
+принимающим значение от 0 до 100 (%) и ограничивающим потребляемую лампочкой мощность.
 
 ```
-const device = {
+class Device {
     ...
 
-    toString() {
-        ...
+    isOn() {
+        return this._state === STATE_ON;
+    }
+
+    getInputPower() {
+        return this.isOn() ? this.getPower() : 0;
     }
 }
 
-const lamp = {
-    __proto__: device,
+class Lamp extends Device {
+    _dimmer = 100;  // значение диммера 0-100%
 
-    this.toString = function() {
-        if (this.getModel()) {
-            return `${this.getSelfName()}('${this.getModel()}', ${this.getPower()}wt)`
-        } else {
-            return `${this.getSelfName()}(${this.getPower()}wt)`
-        }
+    getDimmer() {
+        return this._dimmer;
     }
 }
 
-
 ```
 
-Применив принцип SOLID (Принцип открытости-закрытости), с учётом минимальных требований к реализации метода toString(), реализуем в прототипе схематичный вывод свойств унифицированным способом, избавив потомков от собственных реализаций метода toString().
+Реализация метода getInputPower(), учитывающая особенности конкретного класса-потомка, в классе-предке
+была-бы нарушением принципа "открытости-закрытости". Базовый класс показывал-бы необоснованную осведомлённость
+в свойствах потомков. Кроме того, если появятся потомки с другим алгоритмом расчёта мощности пришлось-бы
+снова модифицировать метод базового класса для учёта их особенностей.
 
 ```
-const device = {
+class Device {
     ...
 
-    toString() {
-        const keys = Object.getOwnPropertyNames(this);
-        const props = [];
+    isOn() {
+        return this._state === STATE_ON;
+    }
 
-        keys.forEach(
-            (key) => props.push(`${key}: ${this[key]}`)
-        );
+    getInputPower() {
+        let p =  this.isOn() ? this.getPower() : 0;
 
-        return `Device(${props.join(', ')})`;
+        if (this.getClassName() === 'Lamp')
+            p = p * this.getDimmer() / 100;
+
+        return p;    
     }
 }
 
-const lamp = {
-    __proto__: device,
+class Lamp extends Device {
+    _dimmer = 100;  // значение диммера 0-100%
+
+    getDimmer() {
+        return this._dimmer;
+    }
 }
 
 ```
 
-Код потомков значительно сократился а общий код модуля стал лучше сопровождаемым.
+Поэтому, руководствуясь принципом "открытости-закрытости" SOLID, метод getInputPower() выполнен полиморфно
+и потомки могут реализовать этот метод самостоятельно.
+При этом базовый класс не будет нуждаться в изменениях при появлении новых потомков.
+
+```
+class Device {
+    ...
+
+    isOn() {
+        return this._state === STATE_ON;
+    }
+
+    getInputPower() {
+        return this.isOn() ? this.getPower() : 0;
+    }
+}
+
+class Lamp extends Device {
+    _dimmer = 100;  // значение диммера 0-100%
+
+    getDimmer() {
+        return this._dimmer;
+    }
+
+    getInputPower() {
+        return super.getInputPower() * this.getDimmer() / 100;
+    }
+}
+
+```
 
 
 [< Н А З А Д](../../README.md)
